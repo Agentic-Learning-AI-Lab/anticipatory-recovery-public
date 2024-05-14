@@ -23,30 +23,11 @@ from transformers import (
     default_data_collator,
     GPTNeoXForCausalLM,
 )
-from transformers.utils.versions import 
 from copy import deepcopy
 
 logger = get_logger(__name__)
 MODEL_CONFIG_CLASSES = list(MODEL_MAPPING.keys())
 MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
-
-class CustomSamplerWithoutReplacement(torch.utils.data.Sampler):
-    def __init__(self, length, shuffle_start=1):
-        assert length >= shuffle_start
-        self.length = length
-        self.shuffle_start = shuffle_start
-        self.indices = list(range(shuffle_start, length))
-
-    def __iter__(self):
-        for idx in range(self.shuffle_start):
-            yield idx
-        random.shuffle(self.indices)
-        for idx in self.indices:
-            yield idx
-
-    def __len__(self):
-        return self.length
-
 
 def parse_args():
 
@@ -186,7 +167,6 @@ def main():
 
     model.resize_token_embeddings(len(tokenizer))
 
-    # EXPERIMENTAL
     if not args.use_pretrained_weights:
         with torch.no_grad():
             for name, param in model.named_parameters():
@@ -293,8 +273,6 @@ def main():
 
     train_dataset = lm_datasets["train"]
     train_dataloader = DataLoader(train_dataset, shuffle=False, collate_fn=default_data_collator, batch_size=args.per_device_train_batch_size)
-    # train_sampler = CustomSamplerWithoutReplacement(len(train_dataset), shuffle_start=args.start_shuffle_data_samples)
-    # train_dataloader = DataLoader(train_dataset, collate_fn=default_data_collator, batch_size=args.per_device_train_batch_size, sampler=train_sampler)
 
     eval_dataset = eval_lm_datasets["train"]
     eval_dataloader = DataLoader(eval_dataset, shuffle=False, collate_fn=default_data_collator, batch_size=args.per_device_eval_batch_size)
@@ -412,13 +390,6 @@ def main():
 
     for epoch in range(starting_epoch, args.num_train_epochs):
 
-        # # EXPERIMENTAL: Reset last layer weights
-        # if epoch == 3:
-        #     model.embed_out.weight.data = scratch_model.embed_out.weight.data.cuda()
-        #     for layer_idx, (name, param) in enumerate(model.named_parameters()):
-        #         if layer_idx <= 12 * 16:
-        #             param.requires_grad = False
-
         for step, batch in enumerate(train_dataloader):
             if args.resume_from_checkpoint and epoch == starting_epoch:
                 if resume_step is not None and step < resume_step:
@@ -506,22 +477,6 @@ def main():
             if completed_steps >= args.max_train_steps:
                 break
 
-            # if args.checkpointing_steps == "epoch":
-            #     output_dir = f"task_{epoch*args.num_data_samples + step}"
-            #     if args.output_dir is not None:
-            #         output_dir = os.path.join(args.output_dir, output_dir)
-                    
-            #     os.makedirs(output_dir, exist_ok=True)
-            #     accelerator.save_state(output_dir)
-
-            #     # save train_losses
-            #     train_losses_ckpt = torch.cat(train_losses)
-            #     train_losses_ckpt = train_losses_ckpt.cpu().numpy()
-            #     logger.info(f"Mean train loss: {np.mean(train_losses_ckpt)}")
-
-            #     save_path = os.path.join(output_dir, args.save_prefix + '_results.npz')
-            #     np.savez(save_path, train_losses_ckpt=train_losses_ckpt, completed_steps=completed_steps)
-
         if args.checkpointing_steps == "epoch":
             output_dir = f"epoch_{epoch}"
             if args.output_dir is not None:
@@ -538,15 +493,6 @@ def main():
 
             save_path = os.path.join(output_dir, args.save_prefix + '_results.npz')
             np.savez(save_path, train_losses_ckpt=train_losses_ckpt, completed_steps=completed_steps)
-
-        # if epoch == 0 or (epoch+1) % args.eval_freq == 0:
-        #     for step, batch in enumerate(test_dataloader):
-        #         outputs = model(**batch)
-        #         loss = outputs.loss
-        #         test_losses.append(loss.detach().unsqueeze(0))
-        #     test_losses_ckpt = torch.cat(test_losses)
-        #     test_losses_ckpt = test_losses_ckpt.cpu().numpy()
-        #     logger.info(f"Mean test loss: {np.mean(test_losses_ckpt)}")
 
     if args.output_dir is not None:
         output_dir = os.path.join(args.output_dir, f'final')

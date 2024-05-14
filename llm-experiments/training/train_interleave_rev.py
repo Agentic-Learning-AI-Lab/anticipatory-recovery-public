@@ -494,15 +494,6 @@ def main():
             save_path = os.path.join(output_dir, args.save_prefix + '_results.npz')
             np.savez(save_path, train_losses_ckpt=train_losses_ckpt, completed_steps=completed_steps)
 
-        # if epoch == 0 or (epoch+1) % args.eval_freq == 0:
-        #     for step, batch in enumerate(test_dataloader):
-        #         outputs = model(**batch)
-        #         loss = outputs.loss
-        #         test_losses.append(loss.detach().unsqueeze(0))
-        #     test_losses_ckpt = torch.cat(test_losses)
-        #     test_losses_ckpt = test_losses_ckpt.cpu().numpy()
-        #     logger.info(f"Mean test loss: {np.mean(test_losses_ckpt)}")
-
     if args.output_dir is not None:
         output_dir = os.path.join(args.output_dir, f'final')
         # save model and tokenizer

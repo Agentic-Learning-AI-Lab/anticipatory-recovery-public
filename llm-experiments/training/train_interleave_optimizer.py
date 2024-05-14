@@ -155,7 +155,6 @@ def main():
 
     model.resize_token_embeddings(len(tokenizer))
 
-    # EXPERIMENTAL
     if not args.use_pretrained_weights:
         with torch.no_grad():
             for name, param in model.named_parameters():
