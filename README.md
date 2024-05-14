@@ -2,13 +2,13 @@
 
 Code for the paper "Reawakening knowledge: Anticipatory recovery from catastrophic interference via structured training" (ArXiv 2024).
 
-The `llm-memory` folder includes the Language model ([Pythia](https://github.com/EleutherAI/pythia)) experiments; the `igpt-memory` folder includes the [Image GPT](https://github.com/openai/image-gpt) experiments.
+The `llm-experiments` folder includes the Language model ([Pythia](https://github.com/EleutherAI/pythia)) experiments; the `igpt-experiments` folder includes the [Image GPT](https://github.com/openai/image-gpt) experiments; the `imagenet-experiments` folder includes the image classification experiments.
 
 ## LLM Experiments
 
-Example commands for cyclic fine-tuning experiments can be found in the `scripts` folder.
+Example commands for cyclic fine-tuning experiments can be found in the `llm-experiments/scripts` folder.
 
-Code for visualizing the pairwise recovery matrix (Figures 8b and 18), PCA in the last layer weights (Figure 9), and representations (Figure 8d) can be found in the `visualization` folder.
+Code for visualizing the pairwise recovery matrix (Figures 8b and 18), PCA in the last layer weights (Figure 9), and representations (Figure 8d) can be found in the `llm-experiments/visualization` folder.
 
 ## Image GPT Experiments
 
